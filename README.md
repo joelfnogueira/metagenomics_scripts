@@ -42,3 +42,30 @@ optional arguments:
   --category VAR_CHAR   Category [column name ] in the metadata file
   --pattern PAT         Pattern to subset out in Category
 ```
+### micca_modify_tax_txt_v5.py : convert the micca biom to green genes style format
+```
+usage: micca_modify_tax_txt_v5.py [-h] -i TSV_FILE -o OUT_FILE
+
+    this script modifies the biom tsv file created by micca pipeline into greengenes style format
+    # input  :  otu_table.tsv
+    #  Constructed from biom file
+    # OTU ID    MPA26F  MPA27F  MPA28F  MPA6F   MPA7F   MPA8F  MPN23F  MPN29F  MPN2F   MPN3F   MPN4F   MPN5F   MPN6F   MPN7F   MPN8F   taxonomy
+    # 1111582   0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 3.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 Bacteria; Firmicutes; Bacilli; Lactobacillales; Enterococcaceae; Enterococcus
+     
+    # output  : otu_table_modified.tsv 
+    #  Constructed from biom file
+    # OTU ID    MPA26F  MPA27F  MPA28F  MPA6F   MPA7F   MPA8F  MPN23F  MPN29F  MPN2F   MPN3F   MPN4F   MPN5F   MPN6F   MPN7F   MPN8F   taxonomy
+    # 1111582   0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 3.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 k__Bacteria;p__Firmicutes;c__Bacilli;o__Lactobacillales;f__Enterococcaceae;g__Enterococcus;
+ 
+    
+
+optional arguments:
+  -h, --help   show this help message and exit
+  -i TSV_FILE  micca_otu_table.tsv
+  -o OUT_FILE  micca_out_table_modified.tsv
+
+```
+
+
+
+
