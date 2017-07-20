@@ -1,6 +1,9 @@
 # micca_metagneomics
 
 - contains scripts for a hybrid qiime 1.9 / micca 16s amplicone pipeline
+- contains database required for running micca 
+
+--------------------------------------------------------------------------------------
 
 ### to_lefse.R : script to convert the micca taxtable to lefse input files
 ```
