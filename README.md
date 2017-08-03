@@ -68,7 +68,23 @@ optional arguments:
   -o OUT_FILE  micca_out_table_modified.tsv
 
 ```
+### picrust_kegg_l3|ids_to_lefse_format.R
+- R scripts to convert picrust results to lefse input fortmat
+- Need to remove the extra metadata if any
+
+### micca_open_ref_otu_picking_in_docker.sh
+- Bash script for running the MICCA OPEN REF OTU PICKING in docker
+
+### get_biom_staistics.sh 
+- get the stats out of qiime open ref otu biom file
+
+### modify_seqs_header_for_micca.py
+- This scripts modifies the input fasta header to use in MICCA
 
 
+
+
+
+--------------------------------------------------------------------------------------
 
 
