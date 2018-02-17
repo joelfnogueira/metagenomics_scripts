@@ -1,0 +1,259 @@
+---
+title: "Merging_Phyloseq.R"
+author: "Roshan Padmanabhan"
+date: "2/9/2018"
+output: html_document
+---
+Objective
+=========
+- Merge the A and TA phyloseq object
+- Problems are these two phyloseq objects are of different dimensions
+  - ie. differet number of samples , 
+  - different mapping files but some variables are same in both 
+
+```{r}
+source("~/bin/metagenomics_fns.R")
+```
+
+Phyloseq Objects
+================
+```{r}
+load("A/A_filtered_ps2.phyloseq")
+A_ps2 = ps2
+```
+
+```{r}
+load("TA/TA_filtered_ps2.phyloseq")
+TA_ps2 = ps2
+```
+
+```{r}
+A_ps2
+```
+
+```{r}
+TA_ps2
+```
+
+Lets split the phyloseq objects
+-------------------------------
+Tree
+-------
+```{r}
+A_TRE = phy_tree(A_ps2)
+TA_TRE = phy_tree( TA_ps2)
+```
+
+OTUS
+--------
+- fixing rownames
+```{r}
+TA_OTU = as.data.frame(otu_table(TA_ps2))
+A_OTU = as.data.frame(otu_table(A_ps2))
+TA_OTU$OTU = rownames(TA_OTU)
+rownames(TA_OTU) = NULL
+A_OTU$OTU = rownames(A_OTU)
+rownames( A_OTU) = NULL
+class(TA_OTU)
+class(A_OTU)
+```
+TAXA
+--------
+```{r}
+TA_TAX = as.data.frame( tax_table( TA_ps2 ) )
+A_TAX = as.data.frame( tax_table( A_ps2 ) )
+TA_TAX$OTU = rownames(TA_TAX)
+rownames(TA_TAX) = NULL
+A_TAX$OTU = rownames(A_TAX)
+rownames( A_TAX) = NULL
+class(TA_TAX)
+class(A_TAX)
+```
+MAP
+--------
+```{r}
+TA_MAP = data.frame(sample_data( TA_ps2))
+A_MAP = data.frame(sample_data(A_ps2))
+
+A_MAP$SAMPLE = rownames( A_MAP )
+rownames(A_MAP) = NULL
+TA_MAP$SAMPLE = rownames( TA_MAP )
+rownames(TA_MAP) = NULL
+# add a new variable tissue A : Aorta and TA : Temporal Artery
+A_MAP$TISSUE = "A"
+TA_MAP$TISSUE = "TA"
+
+```
+
+
+Merging OTU tables of TA and A
+------------------------------
+- expecting interset of OTUs rows ie 788  and 49 + 43 ( 92 ) columns
+- rest fill with 0's
+
+```{r}
+intersect(A_OTU$OTU ,TA_OTU$OTU) %>% len()
+```
+
+```{r}
+joined_OTU = inner_join(A_OTU ,TA_OTU, by='OTU')
+rownames(joined_OTU) = joined_OTU$OTU
+joined_OTU$OTU = NULL
+```
+
+Merging TAX tables of TA and A
+------------------------------
+- expecting interset of OTUs rows ie 788  and 49 + 43 ( 92 ) columns
+- rest fill with 0's
+```{r}
+intersect(A_TAX$OTU ,TA_TAX$OTU) %>% len()
+```
+```{r}
+joined_TAX = merge(A_TAX, TA_TAX ) 
+rownames(joined_TAX) = joined_TAX$OTU
+joined_TAX$OTU = NULL
+joined_TAX %>% dim
+```
+
+Merging MAP of TA and A
+-----------------------
+- only 13 variables are common between TA and A
+```{r}
+A_MAP %>% dim()
+TA_MAP %>% dim()
+```
+```{r}
+intersect(colnames(A_MAP), colnames(TA_MAP))
+```
+```{r}
+union(colnames(A_MAP), colnames(TA_MAP))
+```
+- so im expecting 92 rows (sample ids) and 13 + 1 columns of variables
+```{r}
+joined_MAP = full_join(A_MAP, TA_MAP, by=intersect(colnames(A_MAP), colnames(TA_MAP))) %>% dplyr::select( intersect(colnames(A_MAP), colnames(TA_MAP)) )
+rownames( joined_MAP ) = joined_MAP$SAMPLE
+```
+
+```{r}
+sort_otu_names =  sort( rownames(joined_OTU) )
+joined_OTU = joined_OTU[sort_otu_names,]
+joined_TAX = joined_TAX[sort_otu_names,]
+```
+
+```{r}
+#joined_TAX2 = joined_TAX %>% dplyr::mutate( 'taxonomy' = paste0( Kingom,"; ",Phylum,"; ",Class,"; ",Order,"; ",Family,"; ",Genus,"; ",Species)) %>% dplyr::select(taxonomy)
+joined_TAX2 = joined_TAX
+rownames(joined_TAX2 )  = rownames(joined_TAX )
+
+```
+
+Make a new phyloseq object
+--------------------------
+```{r}
+joined_OTU_t = otu_table(joined_OTU, taxa_are_rows = TRUE)
+```
+
+```{r}
+joined_TAX_t = tax_table( as.matrix( joined_TAX2 ) )
+```
+
+```{r}
+joined_MAP_t = sample_data( joined_MAP)
+```
+
+Voilà I Made a new phyloseq object
+--------------------------
+```{r}
+joined_ps = phyloseq(joined_OTU_t,joined_TAX_t, joined_MAP_t , A_TRE)
+```
+
+```{r}
+joined_ps
+```
+```{r}
+sample_variables(joined_ps)
+```
+
+
+Make Some Ordination Plots
+===========================
+- f**kin ape throws error 
+- no wunifrac
+```{r}
+Vas_ord_u = phyloseq::ordinate(joined_ps, "PCoA", distance="unifrac")
+#Vas_ord_wu = phyloseq::ordinate(joined_ps, "PCoA", distance="wunifrac")
+Vas_ord_b = phyloseq::ordinate(joined_ps, "PCoA", distance="bray")
+```
+
+PCoA with Bray [ Tissue & Group ]
+------------------
+```{r}
+p1 =plot_ordination(joined_ps, Vas_ord_b, type="sample", color="TISSUE", shape="Group" ,title="Ordination Plot::BC::Vasculitis samples") 
+p1 = p1 + theme_pubr() + theme(legend.position = "right")+ geom_point(size=3, alpha=0.75)
+p1 = p1+ geom_vline(xintercept = 0.0) + geom_hline(yintercept = 0.0)
+p1
+```
+
+
+PCoA with Bray [ Tissue & Group ]
+------------------
+```{r}
+p1 =plot_ordination(joined_ps, Vas_ord_b, type="sample", color="Group", shape="TISSUE" ,title="Ordination Plot::BC::Vasculitis samples") 
+p1 = p1 + theme_pubr() + theme(legend.position = "right")+ geom_point(size=3, alpha=0.75)
+p1 = p1+ geom_vline(xintercept = 0.0) + geom_hline(yintercept = 0.0)
+p1
+```
+
+PCoA with BC [ Tissue ]
+-------------------
+```{r}
+p1 =plot_ordination(joined_ps, Vas_ord_b, type="sample", color="TISSUE",title="Ordination Plot::U::Vasculitis samples") 
+p1 = p1 + theme_pubr() + theme(legend.position = "right") + geom_point(size=2, alpha=0.75)
+p1 = p1+ geom_vline(xintercept = 0.0) + geom_hline(yintercept = 0.0)
+p1
+```
+
+
+
+
+PCoA with Unifrac Distance [ Tissue & Group ]
+---------------------------------------------
+```{r}
+p1 =plot_ordination(joined_ps, Vas_ord_u, type="sample", color="TISSUE", shape="Group" ,title="Ordination Plot::U::Vasculitis samples") 
+p1 = p1 + theme_pubr() + theme(legend.position = "right") + geom_point(size=3, alpha=0.75)
+p1 = p1+ geom_vline(xintercept = 0.0) + geom_hline(yintercept = 0.0)
+p1
+```
+
+
+PCoA with Unifrac Distance [ Tissue & Group ]
+-------------------
+```{r}
+p1 =plot_ordination(joined_ps, Vas_ord_u, type="sample", color="Group", shape="TISSUE" ,title="Ordination Plot::U::Vasculitis samples") 
+p1 = p1 + theme_pubr() + theme(legend.position = "right") + geom_point(size=3, alpha=0.75)
+p1 = p1+ geom_vline(xintercept = 0.0) + geom_hline(yintercept = 0.0)
+p1
+```
+
+PCoA with Unifrac Distance [ Tissue ]
+-------------------
+```{r}
+p1 =plot_ordination(joined_ps, Vas_ord_u, type="sample", color="TISSUE",title="Ordination Plot::U::Vasculitis samples") 
+p1 = p1 + theme_pubr() + theme(legend.position = "right") + geom_point(size=3, alpha=0.75)
+p1 = p1+ geom_vline(xintercept = 0.0) + geom_hline(yintercept = 0.0) 
+p1
+```
+
+
+```{r}
+save(joined_ps, file="Joined_TA_A.phyloseq")
+```
+
+
+
+
+
+
+
+
+
