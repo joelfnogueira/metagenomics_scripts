@@ -1,0 +1,86 @@
+---
+title: "From_Phyloseq_to_Biom"
+author: "roshan padmanabhan"
+date: "February 20, 2018"
+output: html_document
+---
+
+Aim : to convert the phyloseq object to biom
+- steps include saving the phyloseq object into OTU, TAXA and METADATA files
+- and join them by biom convert  which conver it to json biom object
+
+```{r}
+source("~/bin/metagenomics_fns.R")
+```
+
+
+```{r}
+load("Joined_TA_A.phyloseq")
+```
+
+```{r}
+joined_ps
+```
+
+```{r}
+mg.table_denovo_and_gg( joined_ps )
+```
+Note :
+------
+- Not removing the DENOVO OTUs
+
+```{r}
+# ps = mg.prune_taxa( joined_ps, "DENOVO", rev_search = T )
+```
+
+```{r}
+otu_fn ="otu.tsv"
+tax_fn = "tax.tsv"
+map_fn = "map.tsv"
+```
+
+Save OTU
+```{r}
+write.table( otu_table(joined_ps), file = otu_fn, row.names = T, quote = F, sep="\t" )
+```
+
+Save TAX table
+```{r}
+tx = data.frame( tax_table(joined_ps  ) )
+#tx2 = tx %>% dplyr::mutate( taxonomy = paste0( Kingom ,'; ', Phylum,"; ",Class,"; ",Order,"; ",Family,"; ",Genus,"; ",Species ) ) %>% dplyr::select( taxonomy )
+#rownames( tx2 ) = rownames( tx )
+write.table( tx, file=tax_fn, row.names=T , quote=F, sep="; 
+             ")
+```
+
+Save Metadata
+```{r}
+mapx = data.frame(sample_data(  joined_ps    ))
+```
+
+```{r}
+colnames(mapx)
+```
+
+```{r}
+mapy = mapx %>% dplyr::select( SAMPLE, Ethnicity,Group,Pulse,DBP,SBP,HLD,Description,HTN,BMI,CurrentAge,Sex,Age_at_Proc,Aspirin,SAMPLE,TISSUE ) %>% 
+  dplyr::rename("#SampleID" = SAMPLE) 
+```
+
+```{r}
+write.table( mapy, file=map_fn, row.names=T , quote=F, sep="\t")
+```
+
+
+Most IMP.
+- I manually edited TAXA 
+- added #OTU ID taxonomy as the first column
+- should have put it on the TAXA
+- manually edited otu.tsv added #OTU ID for the index column
+
+Make Biom 
+```{r}
+system( "biom convert -i otu.tsv -o otu.j.biom --to-json --table-type 'OTU table' --sample-metadata-fp map.tsv" )
+system( "biom add-metadata -i otu.j.biom -o otu.wt.j.biom --output-as-json --observation-metadata-fp tax.tsv" )
+```
+
