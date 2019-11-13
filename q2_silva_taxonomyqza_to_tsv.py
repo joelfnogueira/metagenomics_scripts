@@ -69,10 +69,9 @@ def _cleanup_df( df ) :
 
 def _msg():
     des="""
-	\n
-	This script takes a qiime2 "SILVA" taxonomy qza archive and convert to taxonomy file \n
-    It also cleanup the taxa columns \n
-	"""
+This script takes a qiime2 "SILVA" taxonomy qza archive and convert to taxonomy file \n
+It also cleanup the taxa columns \n
+"""
     return des
 
 def _parse_args():
