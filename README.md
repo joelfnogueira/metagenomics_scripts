@@ -83,7 +83,20 @@ optional arguments:
 - This scripts modifies the input fasta header to use in MICCA
 
 
+### q2_silva_taxonomyqza_to_tsv.py 
+```
+usage: q2_silva_taxonomyqza_to_tsv.py [-h] -q QZA -o TSV
 
+This script takes a qiime2 "SILVA" taxonomy qza archive and convert to taxonomy file 
+
+It also cleanup the taxa columns 
+
+optional arguments:
+  -h, --help  show this help message and exit
+  -q QZA      path to the qiime2 SILVA taxonomy qza file
+  -o TSV      taxonomy out tsv name
+  
+```
 
 
 --------------------------------------------------------------------------------------
