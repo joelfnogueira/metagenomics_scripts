@@ -1,7 +1,8 @@
-# micca_metagneomics
+# metagneomics scripts
 
-- contains scripts for a hybrid qiime 1.9 / micca 16s amplicone pipeline
-- contains database required for running micca 
+- contains scripts 
+  - for a hybrid qiime 1.9 / micca 16s  amplicone pipeline
+  - for qiime2 processing
 
 --------------------------------------------------------------------------------------
 
