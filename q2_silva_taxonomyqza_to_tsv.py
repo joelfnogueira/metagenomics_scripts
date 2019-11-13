@@ -19,7 +19,7 @@ def get_tsv_from_q2taxonomy_qza_or_qzv(q2_file, tsv_file_name):
                 if re.findall( tsv_file_name, i.filename ) :
                     with zip_ref.open( i.filename ) as myfile:
                         data.append(myfile.read().decode("utf-8"))
-        df=pd.DataFrame( [i.split("	") for i in data[0].splitlines()[2:]]) 
+        df=pd.DataFrame( [i.split("	") for i in data[0].splitlines()[1:]]) 
         df.columns=[i.split("	") for i in data[0].splitlines()[0:1]]
         return df
     except :
